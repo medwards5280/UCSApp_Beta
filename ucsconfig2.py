@@ -243,7 +243,7 @@ def configureucs():
 		
 	# #Create vNIC Template for VMware Managment Interface
 
-		mgmtvnic =  os + TemplateType + "_MGMT"
+		mgmtvnic =  os + "_MGMT"
 		shelve['mgmtvnic'] = mgmtvnic
 		vlanrange = request.form['vlanmgmt']
 				
@@ -268,7 +268,7 @@ def configureucs():
 		handle.commit()
 
 	# #Create vNIC Template for VMware vMotion 
-		motionvnic = os + TemplateType + "_vMotion"
+		motionvnic = os + "_vMotion"
 		shelve['motionvnic'] = motionvnic
 		vlanrange = request.form['vlanmotion']		
 		mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=MacPoolNamevMotion, name=motionvnic, switch_id="B-A", templ_type="updating-template", nw_ctrl_policy_name="Enable_CDP")
@@ -344,7 +344,6 @@ def configureucs():
 
 	# # Create UUID Pool
 		UUIDPoolName = request.form['uuidpoolname']
-		UUIDPoolName = UUIDPoolName + os + TemplateType
 		a = UUIDPoolNumber
 		if a > 0:
 			b = 1
@@ -352,7 +351,7 @@ def configureucs():
 			b = 0	
 		UUIDPoolNumber = add(a,b)
 		UUIDPoolNumber = str(UUIDPoolNumber)
-		mo = UuidpoolPool(parent_mo_or_dn="org-root/org-" + OrgName, name=UUIDPoolName)
+		mo = UuidpoolPool(parent_mo_or_dn="org-root/org-" + OrgName, name=UUIDPoolName + os + TemplateType)
 		mo_1 = UuidpoolBlock(parent_mo_or_dn=mo, r_from=""  + SiteID + DomainID + "0" + UUIDPoolNumber + "-000000000001", to=""  + SiteID + DomainID + "0" + UUIDPoolNumber + "-0000000000FF")
 		handle.add_mo(mo)
 		handle.commit()
@@ -493,15 +492,12 @@ def configureucs():
 	if boottype == "SANBoot":
 	# # Create Service Profle Template
 		TemplateName = os + TemplateType + "_SANBoot"
-		print (BiosPolicyName)
-		print (cimc_name)
-		print (UUIDPoolName)
-		mo = LsServer(parent_mo_or_dn="org-root/org-" + OrgName, bios_profile_name=BiosPolicyName + os, boot_policy_name=SanBootPolicyName, ext_ip_pool_name=cimc_name, ext_ip_state="pooled", ident_pool_name=UUIDPoolName, local_disk_policy_name="default", maint_policy_name=maintpolicyname, name=TemplateName, type="updating-template")
+		mo = LsServer(parent_mo_or_dn="org-root/org-" + OrgName, bios_profile_name=BiosPolicyName + os, boot_policy_name=SanBootPolicyName, ext_ip_pool_name=cimc_name, ext_ip_state="pooled", ident_pool_name=UUIDPoolName + os + TemplateType, local_disk_policy_name="default", maint_policy_name=maintpolicyname, name=TemplateName, type="updating-template")
 		mo_1 = VnicConnDef(parent_mo_or_dn=mo, san_conn_policy_name="")
 		mo_2 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="Management", nw_templ_name=mgmtvnic, order="1", switch_id="A-B")
 		mo_3 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="vMotion", nw_templ_name=motionvnic, order="2", switch_id="B-A")
-		mo_4 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="DataA", nw_templ_name=datavnic + "A", order="3")
-		mo_5 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="DataB", nw_templ_name=datavnic + "B", order="4", switch_id="B")
+		mo_4 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name=os +"DataA" + TemplateType, nw_templ_name=datavnic + "A", order="3")
+		mo_5 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name=os + "DataB" + TemplateType, nw_templ_name=datavnic + "B", order="4", switch_id="B")
 		mo_6 = VnicFcNode(parent_mo_or_dn=mo, addr="pool-derived", ident_pool_name=WWNPoolName)
 		mo_7 = VnicFc(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="fc0", nw_templ_name=vHBATemplate + "HBA_A", order="5")
 		mo_7_1 = VnicFcIf(parent_mo_or_dn=mo_7, name="default")
@@ -517,551 +513,226 @@ def configureucs():
 		
 	return render_template('templateconfig.html')
 
-# @app.route('/configuremore', methods = ['POST'])
-# def configuremore():
+@app.route('/configuremore', methods = ['POST'])
+def configuremore():
 
-	# ipaddress = shelve['ipaddress']
-	# username = shelve['username'] 
-	# password = shelve['password']
-	# SiteID = shelve['SiteID']
-	# DomainID = shelve['DomainID']
-	# OrgName = shelve['OrgName']
-	# maintpolicyname = shelve['maintpolicyname']
-	# BiosPolicyName = shelve['BiosPolicyName']
-	# LocalBootPolicyName = shelve['LocalBootPolicyName']
-	# SanBootPolicyName = shelve['SanBootPolicyName']
-	# cimc_name = shelve['cimc_name']
-	# WWNPoolName	= shelve['WWNPoolName'] 
-	# WWPNPoolName =	shelve['WWPNPoolName']	
-	
-	# MacPoolName = shelve['MacPoolName']
-	# macpoolnumberA = shelve['macpoolnumberA']
-	# macpoolnumberB = shelve['macpoolnumberB']
-	# wwpnpoolnumbera = shelve['wwpnpoolnumbera']
-	# wwpnpoolnumberb = shelve['wwpnpoolnumberb']
-	# wwnnpoolnumber = shelve['wwnnpoolnumber']
-	
-	# mgmtvnic = shelve['mgmtvnic']
-	# motionvnic = shelve['motionvnic']
-	# UUIDPoolName = 	shelve['UUIDPoolName'] 
-	# UUIDPoolNumber = shelve['UUIDPoolNumber'] 
-	
-	# VSANA = shelve["VSANA"]
-	# VSANB = shelve["VSANB"]
-	# FCOEVSANA = shelve["FCOEVSANA"]
-	# FCOEVSANB = shelve["FCOEVSANB"]
+	ipaddress = shelve['ipaddress']
+	username = shelve['username'] 
+	password = shelve['password']
+	SiteID = shelve['SiteID']
+	DomainID = shelve['DomainID']
+	OrgName = shelve['OrgName']
+	maintpolicyname = shelve['maintpolicyname']
+	BiosPolicyName = shelve['BiosPolicyName']
+	#LocalBootPolicyName = shelve['LocalBootPolicyName']
+	SanBootPolicyName = shelve['SanBootPolicyName']
+	cimc_name = shelve['cimc_name']
+	WWNPoolName	= shelve['WWNPoolName'] 
+	WWPNPoolName =	shelve['WWPNPoolName']	
+	MacPoolName = shelve['MacPoolName']
+	macpoolnumberA = shelve['macpoolnumberA']
+	macpoolnumberB = shelve['macpoolnumberB']
+	wwpnpoolnumbera = shelve['wwpnpoolnumbera']
+	wwpnpoolnumberb = shelve['wwpnpoolnumberb']
+	wwnnpoolnumber = shelve['wwnnpoolnumber']
+	mgmtvnic = shelve['mgmtvnic']
+	motionvnic = shelve['motionvnic']
+	UUIDPoolName = 	shelve['UUIDPoolName'] 
+	UUIDPoolNumber = shelve['UUIDPoolNumber'] 
+	VSANA = shelve["VSANA"]
+	VSANB = shelve["VSANB"]
+	FCOEVSANA = shelve["FCOEVSANA"]
+	FCOEVSANB = shelve["FCOEVSANB"]
 
 	
-	# #Login to UCS
-	# handle = UcsHandle()
-	# handle.Login(ipaddress, username, password, noSsl=True, port=80, dumpXml=YesOrNo.FALSE)
+	#Login to UCS
+	handle = UcsHandle(ipaddress, username, password)
+	handle.login()
 
 # # # Server Profile Settings (Mac Address Pools, BIOS, UUID, vNIC )
-	# os = request.form['os']
-	# TemplateType = request.form['TemplateType']
-	# if os == 'ESX':	
-		# MacPoolName = request.form['macpoolname']
-		# SiteID = request.form['siteid']
-		# DomainID = request.form['domainid']
-		# shelve['MacPoolName'] = MacPoolName
-		# shelve['SiteID'] = SiteID
-		# shelve['DomainID'] = DomainID
-		
-		# macpoolnumberA = 0
-		# macpoolnumberB = 0
-		# UUIDPoolNumber = 0
+	os = request.form['os']
+	TemplateType = request.form['TemplateType']
+	if os == 'ESX':	
 
 	# # #Create Mac Addres Pool for VMware Data Interfaces - Fabric A
-
-		# a = macpoolnumberA
-		# b = 1
-		# macpoolnumberA = add(a,b)		
-		# macpoolnumberA = str(macpoolnumberA)
-		# MacPoolNameESX = MacPoolName + TemplateType
 		
-		# mo = MacpoolPool(parent_mo_or_dn="org-root/org-" + OrgName, name=MacPoolNameESX + "A")
-		# mo_1 = MacpoolBlock(parent_mo_or_dn=mo, r_from="00:25:B5:" + SiteID + DomainID + ":A" + macpoolnumberA + ":00", to="00:25:B5:" + SiteID + DomainID + ":A" + macpoolnumberA +":FF")
-		# handle.add_mo(mo)
-		# handle.commit()
+		macpoolnumberA = int(macpoolnumberA)
+		a = macpoolnumberA
+		b = 1
+		macpoolnumberA = add(a,b)		
+		macpoolnumberA = str(macpoolnumberA)
+	
+		MacPoolNameESX = MacPoolName + TemplateType
+		
+		mo = MacpoolPool(parent_mo_or_dn="org-root/org-" + OrgName, name=MacPoolNameESX + "A")
+		mo_1 = MacpoolBlock(parent_mo_or_dn=mo, r_from="00:25:B5:" + SiteID + DomainID + ":A" + macpoolnumberA + ":00", to="00:25:B5:" + SiteID + DomainID + ":A" + macpoolnumberA +":FF")
+		handle.add_mo(mo)
+		handle.commit()
 
-		# shelve['macpoolnumberA'] = macpoolnumberA
-		# macpoolnumberA = int(macpoolnumberA)
+		shelve['macpoolnumberA'] = macpoolnumberA
+		macpoolnumberA = int(macpoolnumberA)
 		
 	# # #Create Mac Addres Pool for VMware Data Interfaces - Fabric B
+		
+		macpoolnumberB = int(macpoolnumberB)
+		a = macpoolnumberB
+		b = 1
+		macpoolnumberB = add(a,b)
+		macpoolnumberB = str(macpoolnumberB)
+		mo = MacpoolPool(parent_mo_or_dn="org-root/org-" + OrgName, name=MacPoolNameESX + "B")
+		mo_1 = MacpoolBlock(parent_mo_or_dn=mo, r_from="00:25:B5:" + SiteID + DomainID + ":B" + macpoolnumberB + ":00", to="00:25:B5:" + SiteID + DomainID + ":B" + macpoolnumberB +":FF")
+		handle.add_mo(mo)
+		handle.commit()
 
-		# a = macpoolnumberB
-		# b = 1
-		# macpoolnumberB = add(a,b)
-		# macpoolnumberB = str(macpoolnumberB)
-
-		# mo = MacpoolPool(parent_mo_or_dn="org-root/org-" + OrgName, name=MacPoolNameESX + "B")
-		# mo_1 = MacpoolBlock(parent_mo_or_dn=mo, r_from="00:25:B5:" + SiteID + DomainID + ":B" + macpoolnumberB + ":00", to="00:25:B5:" + SiteID + DomainID + ":B" + macpoolnumberB +":FF")
-		# handle.add_mo(mo)
-		# handle.commit()
-
-		# shelve['macpoolnumberB'] = macpoolnumberB	
-		# macpoolnumberB = int(macpoolnumberB)
+		shelve['macpoolnumberB'] = macpoolnumberB	
+		macpoolnumberB = int(macpoolnumberB)
 
 	# # #vNIC Template
 
 	# # # Create vNIC Template for VMware Data Interfaces
 
-		# datavnic = os + TemplateType
-		# mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=MacPoolNameESX + "A", name=datavnic + "A", switch_id="A", templ_type="updating-template", nw_ctrl_policy_name="Enable_CDP")
-		# handle.add_mo(mo, True)
-		# handle.commit()
+		datavnic = os + TemplateType
+		mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=MacPoolNameESX + "A", name=datavnic + "A", switch_id="A", templ_type="updating-template", nw_ctrl_policy_name="Enable_CDP")
+		handle.add_mo(mo, True)
+		handle.commit()
 
-		# mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=MacPoolNameESX + "B", name=datavnic + "B", switch_id="B", templ_type="updating-template", nw_ctrl_policy_name="Enable_CDP")
-		# handle.add_mo(mo, True)
-		# handle.commit()
+		mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=MacPoolNameESX + "B", name=datavnic + "B", switch_id="B", templ_type="updating-template", nw_ctrl_policy_name="Enable_CDP")
+		handle.add_mo(mo, True)
+		handle.commit()
 
 		# # #Add VLANs for vNIC template 
 
-		# vlanrange = request.form['vlandata']
+		vlanrange = request.form['vlandata']
 
-		# for x in rangeexpand(vlanrange):		
-			# y = str(x)
-			# mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, name=datavnic + "A")
-			# mo_1 = VnicEtherIf(parent_mo_or_dn=mo, default_net="no", name="VLAN" + y)
-			# handle.add_mo(mo, True)
-			# handle.commit()
+		for x in rangeexpand(vlanrange):		
+			y = str(x)
+			mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, name=datavnic + "A")
+			mo_1 = VnicEtherIf(parent_mo_or_dn=mo, default_net="no", name="VLAN" + y)
+			handle.add_mo(mo, True)
+			handle.commit()
 
-		# for x in rangeexpand(vlanrange):		
-			# y = str(x)
-			# mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, name=datavnic + "B")
-			# mo_1 = VnicEtherIf(parent_mo_or_dn=mo, default_net="no", name="VLAN" + y)
-			# handle.add_mo(mo, True)	
-			# handle.commit()		
+		for x in rangeexpand(vlanrange):		
+			y = str(x)
+			mo = VnicLanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, name=datavnic + "B")
+			mo_1 = VnicEtherIf(parent_mo_or_dn=mo, default_net="no", name="VLAN" + y)
+			handle.add_mo(mo, True)	
+			handle.commit()		
 
 	# # # Create UUID Pool
-		# UUIDPoolName = request.form['uuidpoolname']
-		# UUIDPoolName = UUIDPoolName + os + TemplateType
-		# a = UUIDPoolNumber
-		# if a > 0:
-			# b = 1
-		# else:
-			# b = 0	
-		# UUIDPoolNumber = add(a,b)
-		# UUIDPoolNumber = str(UUIDPoolNumber)
-		# mo = UuidpoolPool(parent_mo_or_dn="org-root/org-" + OrgName, name=UUIDPoolName)
-		# mo_1 = UuidpoolBlock(parent_mo_or_dn=mo, r_from=""  + SiteID + DomainID + "0" + UUIDPoolNumber + "-000000000001", to=""  + SiteID + DomainID + "0" + UUIDPoolNumber + "-0000000000FF")
-		# handle.add_mo(mo)
-		# handle.commit()
+		UUIDPoolNumber = int(UUIDPoolNumber)	
+		a = UUIDPoolNumber
+		b = 1
+		UUIDPoolNumber = add(a,b)
+		UUIDPoolNumber = str(UUIDPoolNumber)
+		mo = UuidpoolPool(parent_mo_or_dn="org-root/org-" + OrgName, name=UUIDPoolName + os + TemplateType)
+		mo_1 = UuidpoolBlock(parent_mo_or_dn=mo, r_from=""  + SiteID + DomainID + "0" + UUIDPoolNumber + "-000000000001", to=""  + SiteID + DomainID + "0" + UUIDPoolNumber + "-0000000000FF")
+		handle.add_mo(mo)
+		handle.commit()
 		
 
-		# shelve['UUIDPoolNumber'] = UUIDPoolNumber
-		# shelve['UUIDPoolName'] = UUIDPoolName
-		# UUIDPoolNumber = int(UUIDPoolNumber)	
+		shelve['UUIDPoolNumber'] = UUIDPoolNumber
+		shelve['UUIDPoolName'] = UUIDPoolName
+		UUIDPoolNumber = int(UUIDPoolNumber)	
 
-		# ## Boot Policies and Storage Settings
+# ## Boot Policies and Storage Settings
 	
-	
-	# boottype = request.form['boot']
+	boottype = request.form['boot']
 	# ###SAN Boot Settings
-	# if boottype == "SANBoot":
-		# wwnnpoolnumber = 0
-		# wwpnpoolnumbera = 0
-		# wwpnpoolnumberb = 0
-		# CTLWWN1A = request.form['CTLWWN1A']
-		# CTLWWN2A = request.form['CTLWWN2A']
-		# CTLWWN1B = request.form['CTLWWN1B']	
-		# CTLWWN2B = request.form['CTLWWN2B']	
-		# SanBootPolicyName = request.form['SanBootPolicyName']
-		# shelve['SanBootPolicyName'] = SanBootPolicyName
-		# mo = LsbootPolicy(parent_mo_or_dn="org-root/org-" + OrgName, name=SanBootPolicyName)
-		# mo_1 = LsbootVirtualMedia(parent_mo_or_dn=mo, access="read-only-remote", lun_id="0", order="1")
-		# mo_2 = LsbootSan(parent_mo_or_dn=mo, order="2")
-		# mo_2_1 = LsbootSanCatSanImage(parent_mo_or_dn=mo_2, type="primary", vnic_name="fc0")
-		# mo_2_1_1 = LsbootSanCatSanImagePath(parent_mo_or_dn=mo_2_1, type="primary", wwn=CTLWWN1A)
-		# mo_2_1_2 = LsbootSanCatSanImagePath(parent_mo_or_dn=mo_2_1, type="secondary", wwn=CTLWWN1B)
-		# mo_2_2 = LsbootSanCatSanImage(parent_mo_or_dn=mo_2, type="secondary", vnic_name="fc1")
-		# mo_2_2_1 = LsbootSanCatSanImagePath(parent_mo_or_dn=mo_2_2, type="primary", wwn=CTLWWN2A)
-		# mo_2_2_2 = LsbootSanCatSanImagePath(parent_mo_or_dn=mo_2_2, type="secondary", wwn=CTLWWN2B)
-		# mo_3 = LsbootVirtualMedia(parent_mo_or_dn=mo, access="read-only-remote-cimc", lun_id="0", order="3")
-		# handle.add_mo(mo)
-		# handle.commit()
+	if boottype == "SANBoot":
 		
-	# ###Create WWNN Pool
-		# WWNPoolName = request.form['wwnnpoolname']
-		# shelve['WWNPoolName'] = WWNPoolName	
-		# WWNPoolName = WWNPoolName + os + TemplateType
-		# a = wwnnpoolnumber
-		# if a > 0:
-			# b = 1
-		# else:
-			# b = 0
-		# wwnnpoolnumber = add(a,b)
-		# wwnnpoolnumber = str(wwnnpoolnumber)
+	###Create WWNN Pool
+		WWNPoolName = WWNPoolName + os + TemplateType
+		wwnnpoolnumber = int(wwnnpoolnumber)
+		a = wwnnpoolnumber
+		b = 1
+
+		wwnnpoolnumber = add(a,b)
+		wwnnpoolnumber = str(wwnnpoolnumber)
 		
-		# mo = FcpoolInitiators(parent_mo_or_dn="org-root/org-" + OrgName, name=WWNPoolName, purpose="node-wwn-assignment")
-		# mo_1 = FcpoolBlock(parent_mo_or_dn=mo, r_from="20:00:00:25:B5:" + SiteID + DomainID + ":F" + wwnnpoolnumber + ":00", to="20:00:00:25:B5:" + SiteID + DomainID + ":F" + wwnnpoolnumber + ":FF")
-		# handle.add_mo(mo)
-		# handle.commit()
+		mo = FcpoolInitiators(parent_mo_or_dn="org-root/org-" + OrgName, name=WWNPoolName, purpose="node-wwn-assignment")
+		mo_1 = FcpoolBlock(parent_mo_or_dn=mo, r_from="20:00:00:25:B5:" + SiteID + DomainID + ":F" + wwnnpoolnumber + ":00", to="20:00:00:25:B5:" + SiteID + DomainID + ":F" + wwnnpoolnumber + ":FF")
+		handle.add_mo(mo)
+		handle.commit()
 		
-		# shelve['wwnnpoolnumber'] = wwnnpoolnumber		
-		# wwnnpoolnumber = int(wwnnpoolnumber)
+		shelve['wwnnpoolnumber'] = wwnnpoolnumber		
+		wwnnpoolnumber = int(wwnnpoolnumber)
 
 	# # #Create WWPN Pool for Fabric A
-		# WWPNPoolName = request.form['wwpnpoolname']
-		# shelve['WWPNPoolName'] = WWPNPoolName			
-		# WWPNPoolName = WWPNPoolName + os + TemplateType
-		# a = wwpnpoolnumbera
-		# if a > 0:
-			# b = 1
-		# else:
-			# b = 0	
-		# wwpnpoolnumbera = add(a,b)
-		# wwpnpoolnumbera = str(wwpnpoolnumbera)
-		# mo = FcpoolInitiators(parent_mo_or_dn="org-root/org-" + OrgName, name=WWPNPoolName + "A")
-		# mo_1 = FcpoolBlock(parent_mo_or_dn=mo, r_from="20:00:00:25:B5:" + SiteID + DomainID + ":A" + wwpnpoolnumbera + ":00", to="20:00:00:25:B5:" + SiteID + DomainID + ":A" + wwpnpoolnumbera + ":FF")
-		# handle.add_mo(mo)
-		# handle.commit()
+		WWPNPoolName = WWPNPoolName + os + TemplateType
+		wwpnpoolnumbera = int(wwpnpoolnumbera)
+		a = wwpnpoolnumbera
+		b = 1	
+		wwpnpoolnumbera = add(a,b)
+		wwpnpoolnumbera = str(wwpnpoolnumbera)
+		mo = FcpoolInitiators(parent_mo_or_dn="org-root/org-" + OrgName, name=WWPNPoolName + "A")
+		mo_1 = FcpoolBlock(parent_mo_or_dn=mo, r_from="20:00:00:25:B5:" + SiteID + DomainID + ":A" + wwpnpoolnumbera + ":00", to="20:00:00:25:B5:" + SiteID + DomainID + ":A" + wwpnpoolnumbera + ":FF")
+		handle.add_mo(mo)
+		handle.commit()
 
-		# shelve['wwpnpoolnumbera'] = wwpnpoolnumbera	
-		# wwpnpoolnumbera = int(wwpnpoolnumbera)
-
-	# # #Create WWPN Pool for Fabric B
-		# a = wwpnpoolnumberb
-		# if a > 0:
-			# b = 1
-		# else:
-			# b = 0	
-		# wwpnpoolnumberb = add(a,b)
-		# wwpnpoolnumberb = str(wwpnpoolnumberb)
-		# mo = FcpoolInitiators(parent_mo_or_dn="org-root/org-" + OrgName, name=WWPNPoolName + "B")
-		# mo_1 = FcpoolBlock(parent_mo_or_dn=mo, r_from="20:00:00:25:B5:" + SiteID + DomainID + ":B" + wwpnpoolnumberb + ":00", to="20:00:00:25:B5:" + SiteID + DomainID + ":B" + wwpnpoolnumberb + ":FF")
-		# handle.add_mo(mo)
-		# handle.commit()
-		# shelve['wwpnpoolnumberb'] = wwpnpoolnumberb	
-		# wwpnpoolnumberb = int(wwpnpoolnumberb)			
-
-		# VSANA = request.form['VSANA']
-		# FCOEVSANA = request.form['FCOEA']
-		# VSANB = request.form['VSANB']
-		# FCOEVSANB = request.form['FCOEB']
-		# shelve["VSANA"] = VSANA
-		# shelve["VSANB"] = VSANB
-		# shelve["FCOEVSANA"] = FCOEVSANA
-		# shelve["FCOEVSANB"] = FCOEVSANB
-		
-		
-	# # # Create Fabric A VSAN		
-		# mo = FabricVsan(parent_mo_or_dn="fabric/san/A", fc_zone_sharing_mode="coalesce", fcoe_vlan=FCOEVSANA, id=VSANA, name=VSANA, policy_owner="local", zoning_state="disabled")
-		# handle.add_mo(mo)
-		# handle.commit()
-
-	# # # Create Fabric B VSAN
-		# mo = FabricVsan(parent_mo_or_dn="fabric/san/B", fc_zone_sharing_mode="coalesce", fcoe_vlan=FCOEVSANB, id=VSANB, name=VSANB, policy_owner="local", zoning_state="disabled")
-		# handle.add_mo(mo)
-		# handle.commit()
-
-	# # #Create vHBA Template Fabric A
-		# vHBATemplate = os + TemplateType
-		# mo = VnicSanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=WWPNPoolName + "A", name=vHBATemplate + "HBA_A", switch_id="A", templ_type="updating-template")
-		# mo_1 = VnicFcIf(parent_mo_or_dn=mo, name=VSANA)
-		# handle.add_mo(mo)
-		# handle.commit()
-
-	# # #Create vHBA Template Fabric B
-		# mo = VnicSanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=WWPNPoolName + "B", name=vHBATemplate + "HBA_B", switch_id="B", templ_type="updating-template")
-		# mo_1 = VnicFcIf(parent_mo_or_dn=mo, name=VSANB)
-		# handle.add_mo(mo)
-		# handle.commit()
-	
-	# ### Local Boot Settings		
-	# if boottype == "LocalBoot":
-		# shelve['LocalBootPolicyName'] = LocalBootPolicyName
-		# LocalBootPolicyName = request.form['LocalBootPolicyName']
-		# mo = LsbootPolicy(parent_mo_or_dn="org-root/org-" + OrgName, name=LocalBootPolicyName)
-		# mo_1 = LsbootVirtualMedia(parent_mo_or_dn=mo, access="read-only-remote", lun_id="0", order="1")
-		# mo_2 = LsbootStorage(parent_mo_or_dn=mo, order="2")
-		# mo_2_1 = LsbootLocalStorage(parent_mo_or_dn=mo_2, )
-		# mo_2_1_1 = LsbootLocalHddImage(parent_mo_or_dn=mo_2_1, order="2")
-		# mo_3 = LsbootVirtualMedia(parent_mo_or_dn=mo, access="read-only-remote-cimc", lun_id="0", order="3")
-		# handle.add_mo(mo)
-		# handle.commit()	
-
-	# if boottype == "SANBoot":
-	# # # Create Service Profle Template
-		# TemplateName = os + TemplateType + "_SANBoot"
-		# print (BiosPolicyName)
-		# print (cimc_name)
-		# print (UUIDPoolName)
-		# mo = LsServer(parent_mo_or_dn="org-root/org-" + OrgName, bios_profile_name=BiosPolicyName + os, boot_policy_name=SanBootPolicyName, ext_ip_pool_name=cimc_name, ext_ip_state="pooled", ident_pool_name=UUIDPoolName, local_disk_policy_name="default", maint_policy_name=maintpolicyname, name=TemplateName, type="updating-template")
-		# mo_1 = VnicConnDef(parent_mo_or_dn=mo, san_conn_policy_name="")
-		# mo_2 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="Management", nw_templ_name=mgmtvnic, order="1", switch_id="A-B")
-		# mo_3 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="vMotion", nw_templ_name=motionvnic, order="2", switch_id="B-A")
-		# mo_4 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="DataA", nw_templ_name=datavnic + "A", order="3")
-		# mo_5 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="DataB", nw_templ_name=datavnic + "B", order="4", switch_id="B")
-		# mo_6 = VnicFcNode(parent_mo_or_dn=mo, addr="pool-derived", ident_pool_name=WWNPoolName)
-		# mo_7 = VnicFc(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="fc0", nw_templ_name=vHBATemplate + "HBA_A", order="5")
-		# mo_7_1 = VnicFcIf(parent_mo_or_dn=mo_7, name="default")
-		# mo_8 = VnicFc(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="fc1", nw_templ_name=vHBATemplate + "HBA_B", order="6")
-		# mo_8_1 = VnicFcIf(parent_mo_or_dn=mo_8, name="default")
-		# mo_9 = FabricVCon(parent_mo_or_dn=mo, fabric="NONE", id="1", inst_type="auto", placement="physical", select="all", share="shared", transport="ethernet,fc")
-		# mo_10 = FabricVCon(parent_mo_or_dn=mo, fabric="NONE", id="2", inst_type="auto", placement="physical", select="all", share="shared", transport="ethernet,fc")
-		# mo_11 = FabricVCon(parent_mo_or_dn=mo, fabric="NONE", id="3", inst_type="auto", placement="physical", select="all", share="shared", transport="ethernet,fc")
-		# mo_12 = FabricVCon(parent_mo_or_dn=mo, fabric="NONE", id="4", inst_type="auto", placement="physical", select="all", share="shared", transport="ethernet,fc")
-		# mo_13 = LsPower(parent_mo_or_dn=mo, state="admin-up")
-		# handle.add_mo(mo, True)
-		# handle.commit()
-		
-
-	# #Global Configuration Settings
-
-	# # Create Mac Address, WWN, WWPN and UUID Pools
-	# os = request.form['os']
-	# TemplateType = request.form['TemplateType']
-	# if os == 'ESX':	
-
-	# #Create Mac Addres Pool for VMware Management on Fabric A	
-
-	# #Create Mac Addres Pool for Fabric A
-
-		# a = int(macpoolnumberA)
-		# if a > 0:
-			# b = 1
-		# else:
-			# b = 0
-		# macpoolnumberA = add(a,b)
-		# macpoolnumberA = str(macpoolnumberA)
-		# MacPoolNameESX = MacPoolName + TemplateType
-		
-
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-',OrgName,"})
-		# mo = handle.AddManagedObject(obj, "macpoolPool", {"PolicyOwner":"local", "AssignmentOrder":"default",
-		 # "Dn":"org-root/org-" + OrgName + "/mac-pool-" + MacPoolNameESX + "A", "Name":MacPoolNameESX + "A", "Descr":""})
-		# mo_1 = handle.AddManagedObject(mo, "macpoolBlock", {"To":"00:25:B5:" + SiteID + DomainID + ":A" + macpoolnumberA +":FF", "From":"00:25:B5:" + SiteID + DomainID + ":A" + macpoolnumberA + ":00",
-		 # "Dn":"org-root/org-" + OrgName + "/mac-pool-" + MacPoolNameESX + "A/block-00:25:B5:" + SiteID + DomainID + ":A" + macpoolnumberA + ":00-00:25:B5:" + SiteID + DomainID + ":A" + macpoolnumberA + ":FF"})
-		# handle.CompleteTransaction()
-		# shelve['macpoolnumberA'] = macpoolnumberA
-		# macpoolnumberA = int(macpoolnumberA)
-		
-	# #Create Mac Addres Pool for Fabric B
-
-		# a = int(macpoolnumberB)
-		# if a > 0:
-			# b = 1
-		# else:
-			# b = 0
-		# macpoolnumberB = add(a,b)
-		# macpoolnumberB = str(macpoolnumberB)
-
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-',OrgName,"})
-		# mo = handle.AddManagedObject(obj, "macpoolPool", {"PolicyOwner":"local", "AssignmentOrder":"default",
-		 # "Dn":"org-root/org-" + OrgName + "/mac-pool-" + MacPoolNameESX + "B", "Name":MacPoolNameESX + "B", "Descr":""})
-		# mo_1 = handle.AddManagedObject(mo, "macpoolBlock", {"To":"00:25:B5:" + SiteID + DomainID + ":B" + macpoolnumberB + ":FF", "From":"00:25:B5:" + SiteID + DomainID + ":B" + macpoolnumberB + ":00",
-		 # "Dn":"org-root/org-" + OrgName + "/mac-pool-" + MacPoolNameESX + "B/block-00:25:B5:" + SiteID + DomainID + ":B" + macpoolnumberB + ":00-00:25:B5:" + SiteID + DomainID + ":B" + macpoolnumberB + ":FF"})
-		# handle.CompleteTransaction()
-		# shelve['macpoolnumberB'] = macpoolnumberB	
-		# macpoolnumberB = int(macpoolnumberB)
-
-	# #vNIC Template
-
-	# # Create vNIC Template for VMware Data Interfaces
-
-		# datavnic = os + TemplateType
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-' ,OrgName, "})
-		# mo = handle.AddManagedObject(obj, "vnicLanConnTempl", {"IdentPoolName":MacPoolNameESX + "A",
-		 # "Dn":"org-root/org-" + OrgName + "/lan-conn-templ-" + datavnic + "A", "QosPolicyName":"",
-		 # "Descr":"", "PolicyOwner":"local", "NwCtrlPolicyName":"", "TemplType":"initial-template",
-		 # "StatsPolicyName":"default", "Mtu":"1500", "PinToGroupName":"", "Name":datavnic + "A", "SwitchId":"A"})
-		# handle.CompleteTransaction()
-
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-' ,OrgName, "})
-		# mo = handle.AddManagedObject(obj, "vnicLanConnTempl", {"IdentPoolName":MacPoolNameESX + "B",
-		 # "Dn":"org-root/org-" + OrgName + "/lan-conn-templ-" + datavnic + "B", "QosPolicyName":"",
-		 # "Descr":"", "PolicyOwner":"local", "NwCtrlPolicyName":"", "TemplType":"initial-template",
-		 # "StatsPolicyName":"default", "Mtu":"1500", "PinToGroupName":"", "Name":datavnic + "B", "SwitchId":"B"})
-		# handle.CompleteTransaction()
-
-		# #Add VLANs for vNIC template 
-
-		# vlanrange = request.form['vlandata']
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-', OrgName, "})
-		# mo = handle.AddManagedObject(obj, "vnicLanConnTempl", {"IdentPoolName":MacPoolNameESX + "A",
-		# "Dn":"org-root/org-" + OrgName + "/lan-conn-templ-" + datavnic + "A",
-		 # "QosPolicyName":"", "Descr":"", "PolicyOwner":"local", "NwCtrlPolicyName":"", "TemplType":"initial-template",
-		 # "StatsPolicyName":"default", "Mtu":"1500", "PinToGroupName":"", "SwitchId":"A"}, True)
-		# for x in rangeexpand(vlanrange):		
-			# y = str(x)
-			# mo_1 = handle.AddManagedObject(mo, "vnicEtherIf", {"DefaultNet":"no", "Name":y,
-			 # "Dn":"org-root/org-" + OrgName + "/lan-conn-templ-" + datavnic + "A/if-" + y}, True)
-		# handle.CompleteTransaction()
-			
-		# handle.StartTransaction()	
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-', OrgName, "})
-		# mo = handle.AddManagedObject(obj, "vnicLanConnTempl", {"IdentPoolName":MacPoolNameESX + "B",
-		# "Dn":"org-root/org-" + OrgName + "/lan-conn-templ-" + datavnic + "B",
-		 # "QosPolicyName":"", "Descr":"", "PolicyOwner":"local", "NwCtrlPolicyName":"", "TemplType":"initial-template",
-		 # "StatsPolicyName":"default", "Mtu":"1500", "PinToGroupName":"", "SwitchId":"B"}, True)
-		# for x in rangeexpand(vlanrange):		
-			# y = str(x)
-			# mo_1 = handle.AddManagedObject(mo, "vnicEtherIf", {"DefaultNet":"no", "Name":y,
-			 # "Dn":"org-root/org-" + OrgName + "/lan-conn-templ-" + datavnic + "B/if-" + y}, True)
-		# handle.CompleteTransaction()
-		
-
-	# #Create WWNN Pool
-		# WWNPoolName = WWNPoolName + os + TemplateType
-		# a = int(wwnnpoolnumber)
-		# b = 1
-
-		# wwnnpoolnumber = add(a,b)
-		# wwnnpoolnumber = str(wwnnpoolnumber)
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-',OrgName,"})
-		# mo = handle.AddManagedObject(obj, "fcpoolInitiators", {"Descr":"", "PolicyOwner":"local", "AssignmentOrder":"default", 
-		# "Purpose":"node-wwn-assignment","Dn":"org-root/org-" + OrgName + "/wwn-pool-" + WWNPoolName, "Name":WWNPoolName})
-		# mo_1 = handle.AddManagedObject(mo, "fcpoolBlock", {"To":"20:00:00:25:B5:" + SiteID + DomainID + ":F" + wwnnpoolnumber + ":FF", "From":"20:00:00:25:B5:" + SiteID + DomainID + ":F" + wwnnpoolnumber + ":00",
-		 # "Dn":"org-root/org-" + OrgName + "/wwn-pool-" + WWNPoolName + "/block-20:00:00:25:B5:" + SiteID + DomainID + ":FF" + wwnnpoolnumber + ":00-20:00:00:25:B5:" + SiteID + DomainID + ":F" + wwnnpoolnumber + ":FF"})
-		# handle.CompleteTransaction()
-		# shelve['wwnnpoolnumber'] = wwnnpoolnumber		
-		# wwnnpoolnumber = int(wwnnpoolnumber)
-
-	# #Create WWPN Pool for Fabric A
-		# WWPNPoolName = WWPNPoolName + os + TemplateType
-		# a = int(wwpnpoolnumbera)
-		# b = 1
-
-		# wwpnpoolnumbera = add(a,b)
-		# wwpnpoolnumbera = str(wwpnpoolnumbera)
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-',OrgName,"})
-		# mo = handle.AddManagedObject(obj, "fcpoolInitiators", {"Descr":"", "PolicyOwner":"local", "AssignmentOrder":"default", "Purpose":"port-wwn-assignment",
-		# "Dn":"org-root/org-" + OrgName + "/wwn-pool-" + WWNPoolName + "A", "Name":WWPNPoolName + "A"})
-		# mo_1 = handle.AddManagedObject(mo, "fcpoolBlock", {"To":"20:00:00:25:B5:" + SiteID + DomainID + ":A" + wwpnpoolnumbera + ":FF", "From":"20:00:00:25:B5:" + SiteID + DomainID + ":A" + wwpnpoolnumbera + ":00",
-		 # "Dn":"org-root/org-" + OrgName + "/wwn-pool-" + WWPNPoolName + "A/block-20:00:00:25:B5:" + SiteID + DomainID + ":A" + wwpnpoolnumbera + ":00-20:00:00:25:B5:" + SiteID + DomainID + ":A" + wwpnpoolnumbera + ":FF"})
-		# handle.CompleteTransaction()
-		# shelve['wwpnpoolnumbera'] = wwpnpoolnumbera	
-		# wwpnpoolnumbera = int(wwpnpoolnumbera)
+		shelve['wwpnpoolnumbera'] = wwpnpoolnumbera	
+		wwpnpoolnumbera = int(wwpnpoolnumbera)
 
 	# #Create WWPN Pool for Fabric B
-		# a = int(wwpnpoolnumberb)
-		# b = 1
-
-		# wwpnpoolnumberb = add(a,b)
-		# wwpnpoolnumberb = str(wwpnpoolnumberb)
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-',OrgName,"})
-		# mo = handle.AddManagedObject(obj, "fcpoolInitiators", {"Descr":"", "PolicyOwner":"local", "AssignmentOrder":"default", "Purpose":"port-wwn-assignment",
-		# "Dn":"org-root/org-" + OrgName + "/wwn-pool-" + WWPNPoolName + "B", "Name":WWPNPoolName + "B"})
-		# mo_1 = handle.AddManagedObject(mo, "fcpoolBlock", {"To":"20:00:00:25:B5:" + SiteID + DomainID + ":B" + wwpnpoolnumberb + ":FF", "From":"20:00:00:25:B5:" + SiteID + DomainID + ":B" + wwpnpoolnumberb + ":00",
-		 # "Dn":"org-root/org-" + OrgName + "/wwn-pool-" + WWPNPoolName + "B/block-20:00:00:25:B5:" + SiteID + DomainID + ":B" + wwpnpoolnumberb + ":00-20:00:00:25:B5:" + SiteID + DomainID + ":B" + wwpnpoolnumberb + ":FF"})
-		# handle.CompleteTransaction()
-		# shelve['wwpnpoolnumberb'] = wwpnpoolnumberb	
-		# wwpnpoolnumberb = int(wwpnpoolnumberb)			
+		wwpnpoolnumberb = int(wwpnpoolnumberb)	
+		a = wwpnpoolnumberb
+		b = 1	
+		wwpnpoolnumberb = add(a,b)
+		wwpnpoolnumberb = str(wwpnpoolnumberb)
+		mo = FcpoolInitiators(parent_mo_or_dn="org-root/org-" + OrgName, name=WWPNPoolName + "B")
+		mo_1 = FcpoolBlock(parent_mo_or_dn=mo, r_from="20:00:00:25:B5:" + SiteID + DomainID + ":B" + wwpnpoolnumberb + ":00", to="20:00:00:25:B5:" + SiteID + DomainID + ":B" + wwpnpoolnumberb + ":FF")
+		handle.add_mo(mo)
+		handle.commit()
+		shelve['wwpnpoolnumberb'] = wwpnpoolnumberb	
+		wwpnpoolnumberb = int(wwpnpoolnumberb)			
 		
-	# # Create UUID Pool
-		# UUIDPoolName = UUIDPoolName + os + TemplateType
-		# a = int(UUIDPoolNumber)
-		# b = 1
 
-		# UUIDPoolNumber = add(a,b)
-		# UUIDPoolNumber = str(UUIDPoolNumber)	
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/org-' OrgName,"})
-		# mo = handle.AddManagedObject(obj, "uuidpoolPool", {"Descr":"", "Prefix":"derived", "AssignmentOrder":"default",
-		 # "Dn":"org-root/org-" + OrgName + "/uuid-pool-" + UUIDPoolName, "PolicyOwner":"local", "Name":UUIDPoolName})
-		# mo_1 = handle.AddManagedObject(mo, "uuidpoolBlock", {"To":""  + SiteID + DomainID + "0" + UUIDPoolNumber + "-0000000000FF", "From":""  + SiteID + DomainID + "0" + UUIDPoolNumber + "-000000000001",
-		 # "Dn":"org-root/org-" + OrgName + "/uuid-pool-" + UUIDPoolName + "/block-from-"  + SiteID + DomainID + "0" + UUIDPoolNumber + "-000000000001-to-"  + SiteID + DomainID + "0" + UUIDPoolNumber + "0-0000000000FF"})
-		# handle.CompleteTransaction()
+	# #Create vHBA Template Fabric A
+		vHBATemplate = os + TemplateType
+		mo = VnicSanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=WWPNPoolName + "A", name=vHBATemplate + "HBA_A", switch_id="A", templ_type="updating-template")
+		mo_1 = VnicFcIf(parent_mo_or_dn=mo, name=VSANA)
+		handle.add_mo(mo)
+		handle.commit()
 
-		# shelve['UUIDPoolNumber'] = UUIDPoolNumber			
-		# UUIDPoolNumber = str(UUIDPoolNumber)	
-		
-	# #Create vHBA_Fabric A
-		# vHBATemplate = os + TemplateType
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/',OrgName,"})
-		# mo = handle.AddManagedObject(obj, "vnicSanConnTempl", {"StatsPolicyName":"default",
-		 # "QosPolicyName":"", "Descr":"", "PolicyOwner":"local", "IdentPoolName": WWPNPoolName + "A",
-		 # "MaxDataFieldSize":"2048", "TemplType":"initial-template",
-		 # "Dn":"org-root/org-" + OrgName + "/san-conn-templ-" + vHBATemplate + "HBA_A", "PinToGroupName":"", "Name":vHBATemplate + "HBA_A", "SwitchId":"A"})
-		# mo_1 = handle.AddManagedObject(mo, "vnicFcIf", {"Name":VSANA, "Dn":"org-root/org-" + OrgName + "/san-conn-templ-" + vHBATemplate + "HBA_A/if-default"}, True)
-		# handle.CompleteTransaction()
-
-	# #Create vHBA_Fabric B
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/',OrgName,"})
-		# mo = handle.AddManagedObject(obj, "vnicSanConnTempl", {"StatsPolicyName":"default",
-		 # "QosPolicyName":"", "Descr":"", "PolicyOwner":"local", "IdentPoolName": WWPNPoolName + "B",
-		 # "MaxDataFieldSize":"2048", "TemplType":"initial-template",
-		 # "Dn":"org-root/org-" + OrgName + "/san-conn-templ-" + vHBATemplate + "HBA_B", "PinToGroupName":"", "Name":vHBATemplate + "HBA_B", "SwitchId":"B"})
-		# mo_1 = handle.AddManagedObject(mo, "vnicFcIf", {"Name":VSANB, "Dn":"org-root/org-" + OrgName + "/san-conn-templ-" + vHBATemplate + "HBA_B/if-default"}, True)
-		# handle.CompleteTransaction()
-		
+	# #Create vHBA Template Fabric B
+		mo = VnicSanConnTempl(parent_mo_or_dn="org-root/org-" + OrgName, ident_pool_name=WWPNPoolName + "B", name=vHBATemplate + "HBA_B", switch_id="B", templ_type="updating-template")
+		mo_1 = VnicFcIf(parent_mo_or_dn=mo, name=VSANB)
+		handle.add_mo(mo)
+		handle.commit()
+	
+	### Local Boot Settings		
+	if boottype == "LocalBoot":
+		shelve['LocalBootPolicyName'] = LocalBootPolicyName
+		LocalBootPolicyName = request.form['LocalBootPolicyName']
+		mo = LsbootPolicy(parent_mo_or_dn="org-root/org-" + OrgName, name=LocalBootPolicyName)
+		mo_1 = LsbootVirtualMedia(parent_mo_or_dn=mo, access="read-only-remote", lun_id="0", order="1")
+		mo_2 = LsbootStorage(parent_mo_or_dn=mo, order="2")
+		mo_2_1 = LsbootLocalStorage(parent_mo_or_dn=mo_2, )
+		mo_2_1_1 = LsbootLocalHddImage(parent_mo_or_dn=mo_2_1, order="2")
+		mo_3 = LsbootVirtualMedia(parent_mo_or_dn=mo, access="read-only-remote-cimc", lun_id="0", order="3")
+		handle.add_mo(mo)
+		handle.commit()
+	if boottype == "SANBoot":
 	# # Create Service Profle Template
-		# os = request.form['os']
-		# TemplateType = request.form['TemplateType']
-		# TemplateName = os + TemplateType
-		# handle.StartTransaction()
-		# obj = handle.GetManagedObject(None, None, {"Dn":"org-root/',OrgName,"})
-		# mo = handle.AddManagedObject(obj, "lsServer", {"ResolveRemote":"yes", "MgmtFwPolicyName":"", 
-		# "StatsPolicyName":"default", "HostFwPolicyName":"", "PowerPolicyName":"default", "Name":TemplateName, "IdentPoolName":UUIDPoolName,
-		 # "BootPolicyName":"SANBoot", "UsrLbl":"", "ExtIPState":"pooled", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName,
-		 # "KvmMgmtPolicyName":"", "BiosProfileName":BiosPolicyName, "DynamicConPolicyName":"",
-		 # "VmediaPolicyName":"", "MaintPolicyName":maintpolicyname, "AgentPolicyName":"", "MgmtAccessPolicyName":"", "Type":"updating-template",
-		 # "ExtIPPoolName":cimc_name, "Descr":"", "VconProfileName":"", "SolPolicyName":"", "Uuid":"0", "LocalDiskPolicyName":"default", "PolicyOwner":"local",
-		 # "SrcTemplName":"", "ScrubPolicyName":""})
-		# mo_1 = handle.AddManagedObject(mo, "lsVConAssign", {"Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/assign-ethernet-vnic-" + mgmtvnic,
-		 # "VnicName":mgmtvnic, "Transport":"ethernet", "AdminVcon":"any", "Order":"1"}, True)
-		# mo_2 = handle.AddManagedObject(mo, "lsVConAssign", {"Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName +"/assign-ethernet-vnic-" + datavnic + "A",
-		 # "VnicName":datavnic + "A", "Transport":"ethernet", "AdminVcon":"any", "Order":"2"}, True)
-		# mo_3 = handle.AddManagedObject(mo, "lsVConAssign", {"Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName +"/assign-ethernet-vnic-" + datavnic + "B",
-		 # "VnicName":datavnic + "B", "Transport":"ethernet", "AdminVcon":"any", "Order":"3"}, True)
-		# mo_4 = handle.AddManagedObject(mo, "lsVConAssign", {"Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName +"/assign-ethernet-vnic-" + motionvnic,
-		# "VnicName":motionvnic, "Transport":"ethernet", "AdminVcon":"any", "Order":"4"}, True)
-		# mo_5 = handle.AddManagedObject(mo, "lsVConAssign", {"Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName +"/assign-fc-vnic-fc0", "VnicName":"fc0",
-		 # "Transport":"fc", "AdminVcon":"any", "Order":"5"}, True)
-		# mo_6 = handle.AddManagedObject(mo, "lsVConAssign", {"Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName +"/assign-fc-vnic-fc1", "VnicName":"fc1",
-		 # "Transport":"fc", "AdminVcon":"any", "Order":"6"}, True)
-		# mo_7 = handle.AddManagedObject(mo, "vnicEther", {"Order":"1", "Name":mgmtvnic, "IdentPoolName":"", "Mtu":"1500",
-		 # "AdaptorProfileName":"VMWare", "SwitchId":"A-B", "AdminCdnName":"", "AdminHostPort":"ANY", "Addr":"derived", "QosPolicyName":"",
-		 # "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/ether-" + mgmtvnic, "AdminVcon":"any", "StatsPolicyName":"default", "NwCtrlPolicyName":"",
-		 # "PinToGroupName":"", "NwTemplName":mgmtvnic})
-		# mo_8 = handle.AddManagedObject(mo, "vnicEther", {"Order":"2", "Name":datavnic + "A", "IdentPoolName":"", "Mtu":"1500",
-		 # "AdaptorProfileName":"VMWare", "SwitchId":"A", "AdminCdnName":"", "AdminHostPort":"ANY", "Addr":"derived", "QosPolicyName":"",
-		 # "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/ether-" + datavnic + "A", "AdminVcon":"any", "StatsPolicyName":"default",
-		 # "NwCtrlPolicyName":"", "PinToGroupName":"", "NwTemplName":datavnic + "A"})
-		# mo_9 = handle.AddManagedObject(mo, "vnicEther", {"Order":"3", "Name":datavnic + "B", "IdentPoolName":"", "Mtu":"1500",
-		 # "AdaptorProfileName":"VMWare", "SwitchId":"B", "AdminCdnName":"", "AdminHostPort":"ANY", "Addr":"derived", "QosPolicyName":"",
-		 # "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/ether-" + datavnic + "B", "AdminVcon":"any", "StatsPolicyName":"default", "NwCtrlPolicyName":"",
-		 # "PinToGroupName":"", "NwTemplName":datavnic + "B"})
-		# mo_10 = handle.AddManagedObject(mo, "vnicEther", {"Order":"4", "Name":motionvnic, "IdentPoolName":"", "Mtu":"1500",
-		 # "AdaptorProfileName":"VMWare", "SwitchId":"B-A", "AdminCdnName":"", "AdminHostPort":"ANY", "Addr":"derived",
-		 # "QosPolicyName":"", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/ether-" + motionvnic, "AdminVcon":"any", "StatsPolicyName":"default",
-		 # "NwCtrlPolicyName":"", "PinToGroupName":"", "NwTemplName":motionvnic})
-		# mo_11 = handle.AddManagedObject(mo, "vnicFc", {"Order":"5", "Name":"fc0", "AdminVcon":"any", "MaxDataFieldSize":"2048",
-		 # "IdentPoolName":"", "AdaptorProfileName":"VMWare", "SwitchId":"A", "AdminCdnName":"", "AdminHostPort":"ANY", "Addr":"derived",
-		 # "QosPolicyName":"", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/fc-fc0", "PersBind":"disabled", "StatsPolicyName":"default",
-		 # "PersBindClear":"no", "PinToGroupName":"", "NwTemplName":vHBATemplate + "HBA_A"})
-		# mo_11_1 = handle.AddManagedObject(mo_11, "vnicFcIf", {"Name":"", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/fc-fc0/if-default"}, True)
-		# mo_12 = handle.AddManagedObject(mo, "vnicFc", {"Order":"6", "Name":"fc1", "AdminVcon":"any", "MaxDataFieldSize":"2048",
-		 # "IdentPoolName":"", "AdaptorProfileName":"VMWare", "SwitchId":"A", "AdminCdnName":"", "AdminHostPort":"ANY", "Addr":"derived",
-		 # "QosPolicyName":"", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/fc-fc1", "PersBind":"disabled", "StatsPolicyName":"default",
-		 # "PersBindClear":"no", "PinToGroupName":"", "NwTemplName":vHBATemplate + "HBA_B"})
-		# mo_12_1 = handle.AddManagedObject(mo_12, "vnicFcIf", {"Name":"", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/fc-fc1/if-default"}, True)
-		# mo_13 = handle.AddManagedObject(mo, "vnicFcNode", {"IdentPoolName":WWPNPoolName, "Addr":"pool-derived",
-		 # "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/fc-node"}, True)
-		# mo_14 = handle.AddManagedObject(mo, "lsPower", {"State":"admin-up", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/power"}, True)
-		# mo_15 = handle.AddManagedObject(mo, "fabricVCon", {"Transport":"ethernet,fc", "Placement":"physical",
-		 # "Select":"all", "Fabric":"NONE", "InstType":"auto", "Share":"shared", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/vcon-1", "Id":"1"}, True)
-		# mo_16 = handle.AddManagedObject(mo, "fabricVCon", {"Transport":"ethernet,fc", "Placement":"physical",
-		 # "Select":"all", "Fabric":"NONE", "InstType":"auto", "Share":"shared", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/vcon-2", "Id":"2"}, True)
-		# mo_17 = handle.AddManagedObject(mo, "fabricVCon", {"Transport":"ethernet,fc", "Placement":"physical",
-		 # "Select":"all", "Fabric":"NONE", "InstType":"auto", "Share":"shared", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/vcon-3", "Id":"3"}, True)
-		# mo_18 = handle.AddManagedObject(mo, "fabricVCon", {"Transport":"ethernet,fc", "Placement":"physical",
-		 # "Select":"all", "Fabric":"NONE", "InstType":"auto", "Share":"shared", "Dn":"org-root/org-" + OrgName + "/ls-" + TemplateName + "/vcon-4", "Id":"4"}, True)
-		# handle.CompleteTransaction()
-	return render_template('templateconfig.html')
-
-		
+		TemplateName = os + TemplateType + "_SANBoot"
+		mo = LsServer(parent_mo_or_dn="org-root/org-" + OrgName, bios_profile_name=BiosPolicyName + os, boot_policy_name=SanBootPolicyName, ext_ip_pool_name=cimc_name, ext_ip_state="pooled", ident_pool_name=UUIDPoolName + os + TemplateType, local_disk_policy_name="default", maint_policy_name=maintpolicyname, name=TemplateName, type="updating-template")
+		mo_1 = VnicConnDef(parent_mo_or_dn=mo, san_conn_policy_name="")
+		mo_2 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="Management", nw_templ_name=mgmtvnic, order="1", switch_id="A-B")
+		mo_3 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="vMotion", nw_templ_name=motionvnic, order="2", switch_id="B-A")
+		mo_4 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name=os + "DataA" + TemplateType, nw_templ_name=datavnic + "A", order="3")
+		mo_5 = VnicEther(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name=os + "DataB" + TemplateType, nw_templ_name=datavnic + "B", order="4", switch_id="B")
+		mo_6 = VnicFcNode(parent_mo_or_dn=mo, addr="pool-derived", ident_pool_name=WWNPoolName)
+		mo_7 = VnicFc(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="fc0", nw_templ_name=vHBATemplate + "HBA_A", order="5")
+		mo_7_1 = VnicFcIf(parent_mo_or_dn=mo_7, name="default")
+		mo_8 = VnicFc(parent_mo_or_dn=mo, adaptor_profile_name="VMWare", name="fc1", nw_templ_name=vHBATemplate + "HBA_B", order="6")
+		mo_8_1 = VnicFcIf(parent_mo_or_dn=mo_8, name="default")
+		mo_9 = FabricVCon(parent_mo_or_dn=mo, fabric="NONE", id="1", inst_type="auto", placement="physical", select="all", share="shared", transport="ethernet,fc")
+		mo_10 = FabricVCon(parent_mo_or_dn=mo, fabric="NONE", id="2", inst_type="auto", placement="physical", select="all", share="shared", transport="ethernet,fc")
+		mo_11 = FabricVCon(parent_mo_or_dn=mo, fabric="NONE", id="3", inst_type="auto", placement="physical", select="all", share="shared", transport="ethernet,fc")
+		mo_12 = FabricVCon(parent_mo_or_dn=mo, fabric="NONE", id="4", inst_type="auto", placement="physical", select="all", share="shared", transport="ethernet,fc")
+		mo_13 = LsPower(parent_mo_or_dn=mo, state="admin-up")
+		handle.add_mo(mo, True)
+		handle.commit()
+	return render_template('templateconfig.html')	
 @app.route("/")
 def main():
 	return render_template('index.html')

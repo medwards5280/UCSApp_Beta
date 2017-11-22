@@ -104,6 +104,17 @@ display: none;
             }
         });
     });
+	$(function () {
+		$("input[name='boot']").click(function () {
+			if ($("#chkSANBoot").is(":checked")) {
+				$("#dvSANBoot").show();
+				$("#dvLocalBoot").hide();
+			} else if ($("#chkLocalBoot").is(":checked")) {
+				$("#dvSANBoot").hide();
+				$("#dvLocalBoot").show();
+			}
+		});
+    });
 </script>
 
 <form action="/configuremore" class="form-style-9" method="post">
@@ -114,6 +125,27 @@ Initial Configuration Complete  <BR> Configure Another Service Profile Template 
 <div class="hr"><hr /></div>
 <br>
 <br>
+<li>
+  <span>Select Boot Type:</span>
+<label for="chkYes">
+    <input type="radio" id="chkSANBoot" name="boot" value="SANBoot"/>
+    SAN Boot
+</label>
+
+<label for="chkNo">
+    <input type="radio" id="chkLocalBoot" name="boot" value="LocalBoot"/>
+    Local Boot
+</label>
+</li>
+<div id="dvSANBoot" style="display: none">
+
+</div>
+<div id="dvLocalBoot" style="display: none">
+	<li>
+	<input class="field-style field-full align-none" type="text" name="LocalBootPolicyName" placeholder="Local Boot Policy" value="">
+	</li>
+</div>
+<li>
 <li>
   <span>Select Operting System Type?</span>
 <label for="chkYes">
